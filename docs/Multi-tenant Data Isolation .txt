@@ -1,0 +1,70 @@
+TEST Assignment: Multi-tenant Data Isolation 
+
+
+Goal:
+Build a small demo showing PostgreSQL Row Level Security (RLS) for multi-tenant data isolation, using CYPEX backend architecture.
+It should include:
+	•	A PostgREST API for data access
+	•	A Node.js (TypeScript) service for auth/JWT handling
+
+Scope:
+Database: PostgreSQL 16
+Tables:
+org(id, name, created_at)
+app_user(id, org_id, email, role, created_at)
+note(id, org_id, author_id, title, body, created_at)
+
+Tenancy: Shared tables + org_id + strict RLS
+API: PostgREST exposing CRUD + /rpc/notes_for_me
+Auth: Node.js service with routing-controllers, Typedi, pgTyped and Zod
+
+Policies:
+	•	Users can only access rows matching their org_id
+	•	Only role='admin' can delete notes within their org
+	•	notes_for_me() returns notes created by the JWT subject
+
+No frontend — focus on database, API, and auth (but can be as bonus).
+
+Repository must include:
+	•	docker-compose.yml — runs Postgres, PostgREST, Node service
+	•	SQL migrations: schema, RLS, seed, (tests optional)
+	•	auth-api/src/* — Node backend
+	•	Docs: ADR (design decisions), readme.md (how to run/debug/fix)
+
+Bonus to confirm it’s working:
+	•	pg_stat_statements snapshot (docs/pgss.txt)
+	•	EXPLAIN ANALYZE BUFFERS results (docs/explain.txt)
+	•	Git history with 5–10 logical commits
+
+Functional Requirements:
+Create two orgs with users — at least one admin and one/two editor(s) per org.
+
+JWT Flow:
+POST /auth/login → { email, orgSlug } → returns JWT (exp ≤ 15m)
+
+Claims example:
+
+{
+  "sub": "uuid",
+  "org_id": "uuid",
+  "role": "admin",
+  "scopes": ["notes:read", "notes:write"],
+  "iss": "cypex-hire",
+  "aud": "postgrest"
+}
+
+Endpoints:
+	•	GET /note → only user’s org data
+	•	POST /note → allowed if org_id matches
+	•	DELETE /note → only admin, same org
+	•	POST /rpc/notes_for_me → only user’s notes
+
+All RLS policies must fully isolate org data.
+
+Technical Requirements:
+	•	TypeScript: strict mode
+	•	Zod: input validation
+	•	SQL: parameterized queries only
+	•	Indexes: for org_id and key filters
+	•	Logging: JSON structured
+	•	Observability: enable pg_stat_statements (optional)
