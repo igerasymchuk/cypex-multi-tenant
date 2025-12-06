@@ -6,7 +6,7 @@ import pinoHttp from 'pino-http';
 
 import { env, logger, DatabasePool } from './config';
 import { errorHandler } from './middleware';
-import { HealthController } from './controllers';
+import { HealthController, AuthController } from './controllers';
 
 useContainer(Container);
 
@@ -17,7 +17,7 @@ async function bootstrap(): Promise<void> {
   app.use(express.json());
 
   useExpressServer(app, {
-    controllers: [HealthController],
+    controllers: [HealthController, AuthController],
     defaultErrorHandler: false,
     validation: {
       whitelist: true,
