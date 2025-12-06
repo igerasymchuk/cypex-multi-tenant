@@ -1,0 +1,7 @@
+# pg_stat_statements Snapshot
+# ============================
+# Generated with:
+# SELECT query, calls, mean_exec_time, rows
+# FROM pg_stat_statements
+# ORDER BY mean_exec_time DESC
+# LIMIT 20;

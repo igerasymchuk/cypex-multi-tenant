@@ -1,0 +1,5 @@
+# EXPLAIN ANALYZE Results
+# =======================
+# Generated with:
+# EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+# SELECT * FROM api.note;
