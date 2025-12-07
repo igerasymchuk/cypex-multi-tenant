@@ -5,7 +5,7 @@ import { Container } from 'typedi';
 import pinoHttp from 'pino-http';
 
 import { env, logger, DatabasePool } from './config';
-import { errorHandler } from './middleware';
+import { errorHandler, requestIdMiddleware } from './middleware';
 import { HealthController, AuthController } from './controllers';
 
 useContainer(Container);
@@ -13,7 +13,15 @@ useContainer(Container);
 async function bootstrap(): Promise<void> {
   const app = express();
 
-  app.use(pinoHttp({ logger }));
+  app.use(requestIdMiddleware);
+  app.use(
+    pinoHttp({
+      logger,
+      customProps: (req) => ({
+        requestId: req.requestId,
+      }),
+    })
+  );
   app.use(express.json());
 
   useExpressServer(app, {
