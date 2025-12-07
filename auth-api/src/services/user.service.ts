@@ -13,24 +13,25 @@ export interface AppUser {
 export class UserService {
   constructor(private readonly db: DatabasePool) {}
 
-  async findByEmail(email: string): Promise<AppUser | null> {
+  async findByEmailAndOrgSlug(email: string, orgSlug: string): Promise<AppUser | null> {
     const query = `
-      SELECT id, org_id, email, role, created_at
-      FROM public.app_user
-      WHERE email = $1
+      SELECT u.id, u.org_id, u.email, u.role, u.created_at
+      FROM public.app_user u
+      JOIN public.org o ON o.id = u.org_id
+      WHERE u.email = $1 AND o.slug = $2
     `;
 
     try {
-      const rows = await this.db.query<AppUser>(query, [email]);
+      const rows = await this.db.query<AppUser>(query, [email, orgSlug]);
 
       if (rows.length === 0) {
-        logger.debug({ email }, 'User not found');
+        logger.debug({ email, orgSlug }, 'User not found');
         return null;
       }
 
       return rows[0];
     } catch (err) {
-      logger.error({ err, email }, 'Failed to find user by email');
+      logger.error({ err, email, orgSlug }, 'Failed to find user by email and org slug');
       throw err;
     }
   }

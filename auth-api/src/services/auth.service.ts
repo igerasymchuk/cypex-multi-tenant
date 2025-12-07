@@ -20,12 +20,12 @@ export class AuthService {
     private readonly userService: UserService
   ) {}
 
-  async login(email: string): Promise<LoginResult | null> {
-    // Find user by email
-    const user = await this.userService.findByEmail(email);
+  async login(email: string, orgSlug: string): Promise<LoginResult | null> {
+    // Find user by email and organization slug
+    const user = await this.userService.findByEmailAndOrgSlug(email, orgSlug);
 
     if (!user) {
-      logger.warn({ email }, 'Login attempt for non-existent user');
+      logger.warn({ email, orgSlug }, 'Login attempt for non-existent user');
       return null;
     }
 
