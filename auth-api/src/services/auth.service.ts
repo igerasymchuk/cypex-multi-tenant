@@ -34,6 +34,7 @@ export class AuthService {
       sub: user.id,
       org_id: user.org_id,
       role: user.role,
+      scopes: ['notes:read', 'notes:write'],
       email: user.email,
     });
 
