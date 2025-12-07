@@ -32,6 +32,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 \ir /docker-entrypoint-initdb.d/migrations/003_functions.sql
 \ir /docker-entrypoint-initdb.d/migrations/004_seed.sql
 \ir /docker-entrypoint-initdb.d/migrations/005_postgrest_grants.sql
+\ir /docker-entrypoint-initdb.d/migrations/006_observability.sql
 
 \echo '============================================='
 \echo 'Database setup complete!'

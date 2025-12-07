@@ -296,8 +296,76 @@ Standardized error response format:
 
 ---
 
+## ADR-011: Observability with pg_stat_statements
+
+### Status
+Accepted
+
+### Context
+Need visibility into query performance and database health for debugging and capacity planning.
+
+### Decision
+Enable `pg_stat_statements` extension and expose metrics via API.
+
+### Configuration
+```yaml
+# docker-compose.yml postgres command
+- "shared_preload_libraries=pg_stat_statements"
+- "pg_stat_statements.track=all"
+- "pg_stat_statements.max=10000"
+- "pg_stat_statements.track_utility=on"
+```
+
+### API Endpoints (via PostgREST)
+
+| Endpoint | Access | Description |
+|----------|--------|-------------|
+| `POST /rpc/query_stats` | admin | All query statistics |
+| `POST /rpc/database_stats` | admin, editor | DB size, connections, cache ratio |
+| `POST /rpc/table_stats` | admin | Table sizes, row counts, vacuum info |
+| `POST /rpc/slow_queries` | admin | Queries above threshold (default 100ms) |
+| `POST /rpc/reset_query_stats` | admin | Reset all query counters |
+
+### Usage Examples
+```bash
+# Get database overview
+curl -H "Authorization: Bearer $ADMIN_TOKEN" \
+  http://localhost:3000/rpc/database_stats
+
+# View query stats (top 20 by total time)
+curl -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"max_results": 20}' \
+  http://localhost:3000/rpc/query_stats
+
+# Find slow queries (mean > 50ms)
+curl -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"threshold_ms": 50}' \
+  http://localhost:3000/rpc/slow_queries
+```
+
+### Rationale
+- Native PostgreSQL feature with minimal overhead (~2-5%)
+- No external monitoring infrastructure required
+- Useful for identifying slow queries and missing indexes
+- Admin-only access protects sensitive query text
+
+### Consequences
+- Query text stored in shared memory (contains potentially sensitive data)
+- Stats reset on PostgreSQL restart
+- Requires periodic reset to prevent stale data accumulation
+
+### Security Considerations
+- Only `admin` role can view query statistics (may contain user data)
+- Both roles can view aggregate database stats (non-sensitive)
+- Reset function restricted to admin only
+
+---
+
 ## References
 
 - [PostgreSQL RLS Documentation](https://www.postgresql.org/docs/16/ddl-rowsecurity.html)
 - [PostgREST Documentation](https://postgrest.org/en/stable/)
 - [JWT RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)
+- [pg_stat_statements Documentation](https://www.postgresql.org/docs/16/pgstatstatements.html)
