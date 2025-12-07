@@ -1,5 +1,20 @@
-# EXPLAIN ANALYZE Results
-# =======================
-# Generated with:
-# EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-# SELECT * FROM api.note;
+SET request.jwt.claims = '{"org_id": "c0000000-0000-0000-0000-000000000001", "sub": "c1000000-0000-0000-0000-000000000001", "role": "admin"}';
+SET ROLE api_user;
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT * FROM note;
+EOF
+
+                                                         QUERY PLAN                                                          
+-----------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on note  (cost=4.42..12.28 rows=3 width=128) (actual time=0.038..0.039 rows=4 loops=1)
+   Recheck Cond: (org_id = current_user_org_id())
+   Heap Blocks: exact=1
+   Buffers: shared hit=2
+   ->  Bitmap Index Scan on idx_note_org_created  (cost=0.00..4.42 rows=3 width=0) (actual time=0.029..0.029 rows=4 loops=1)
+         Index Cond: (org_id = current_user_org_id())
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=219
+ Planning Time: 3.203 ms
+ Execution Time: 0.118 ms
+(11 rows)
+
