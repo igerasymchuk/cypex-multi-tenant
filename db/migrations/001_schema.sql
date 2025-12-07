@@ -168,17 +168,21 @@ CREATE TRIGGER trg_note_updated_at
 -- API Views
 -- -----------------------------------------------------------------------------
 -- Views in api schema that PostgREST will expose
--- These wrap the public tables and respect RLS policies
+-- SECURITY INVOKER ensures RLS policies are evaluated with the caller's role,
+-- not the view owner's role (which would bypass RLS as postgres superuser)
 
-CREATE OR REPLACE VIEW api.org AS
+CREATE OR REPLACE VIEW api.org
+WITH (security_invoker = on) AS
     SELECT id, name, slug, created_at
     FROM public.org;
 
-CREATE OR REPLACE VIEW api.app_user AS
+CREATE OR REPLACE VIEW api.app_user
+WITH (security_invoker = on) AS
     SELECT id, org_id, email, role, created_at
     FROM public.app_user;
 
-CREATE OR REPLACE VIEW api.note AS
+CREATE OR REPLACE VIEW api.note
+WITH (security_invoker = on) AS
     SELECT id, org_id, author_id, title, body, created_at, updated_at
     FROM public.note;
 

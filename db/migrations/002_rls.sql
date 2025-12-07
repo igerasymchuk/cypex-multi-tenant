@@ -88,7 +88,7 @@ ALTER TABLE public.note FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS org_select_policy ON public.org;
 CREATE POLICY org_select_policy ON public.org
     FOR SELECT
-    TO api_user
+    TO api_user, admin, editor
     USING (id = public.current_user_org_id());
 
 -- -----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ CREATE POLICY org_select_policy ON public.org
 DROP POLICY IF EXISTS app_user_select_policy ON public.app_user;
 CREATE POLICY app_user_select_policy ON public.app_user
     FOR SELECT
-    TO api_user
+    TO api_user, admin, editor
     USING (org_id = public.current_user_org_id());
 
 -- -----------------------------------------------------------------------------
@@ -111,7 +111,7 @@ CREATE POLICY app_user_select_policy ON public.app_user
 DROP POLICY IF EXISTS note_select_policy ON public.note;
 CREATE POLICY note_select_policy ON public.note
     FOR SELECT
-    TO api_user
+    TO api_user, admin, editor
     USING (org_id = public.current_user_org_id());
 
 -- INSERT: Users can only create notes in their organization
@@ -119,7 +119,7 @@ CREATE POLICY note_select_policy ON public.note
 DROP POLICY IF EXISTS note_insert_policy ON public.note;
 CREATE POLICY note_insert_policy ON public.note
     FOR INSERT
-    TO api_user
+    TO api_user, admin, editor
     WITH CHECK (
         org_id = public.current_user_org_id()
         AND author_id = public.current_user_id()
@@ -130,7 +130,7 @@ CREATE POLICY note_insert_policy ON public.note
 DROP POLICY IF EXISTS note_update_policy ON public.note;
 CREATE POLICY note_update_policy ON public.note
     FOR UPDATE
-    TO api_user
+    TO api_user, admin, editor
     USING (org_id = public.current_user_org_id())
     WITH CHECK (org_id = public.current_user_org_id());
 
@@ -138,7 +138,7 @@ CREATE POLICY note_update_policy ON public.note
 DROP POLICY IF EXISTS note_delete_policy ON public.note;
 CREATE POLICY note_delete_policy ON public.note
     FOR DELETE
-    TO api_user
+    TO api_user, admin, editor
     USING (
         org_id = public.current_user_org_id()
         AND public.is_admin()
