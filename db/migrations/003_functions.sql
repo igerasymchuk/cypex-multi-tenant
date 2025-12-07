@@ -73,4 +73,33 @@ COMMENT ON FUNCTION api.create_note(TEXT, TEXT) IS
 
 GRANT EXECUTE ON FUNCTION api.create_note(TEXT, TEXT) TO api_user;
 
+-- -----------------------------------------------------------------------------
+-- Trigger: set_note_owner
+-- -----------------------------------------------------------------------------
+-- Auto-populates org_id and author_id from JWT claims on INSERT
+-- This allows direct INSERT via PostgREST (POST /note) without specifying IDs
+
+CREATE OR REPLACE FUNCTION public.set_note_owner()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Only set from JWT if not explicitly provided (allows seed data to work)
+    IF NEW.org_id IS NULL THEN
+        NEW.org_id := public.current_user_org_id();
+    END IF;
+    IF NEW.author_id IS NULL THEN
+        NEW.author_id := public.current_user_id();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_note_set_owner ON public.note;
+CREATE TRIGGER trg_note_set_owner
+    BEFORE INSERT ON public.note
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_note_owner();
+
+COMMENT ON FUNCTION public.set_note_owner() IS
+    'Trigger function to auto-populate org_id and author_id from JWT claims';
+
 \echo 'Migration 003_functions.sql completed successfully'

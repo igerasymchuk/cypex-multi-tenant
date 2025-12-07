@@ -3,8 +3,9 @@ import express from 'express';
 import { useExpressServer, useContainer } from 'routing-controllers';
 import { Container } from 'typedi';
 import pinoHttp from 'pino-http';
+import swaggerUi from 'swagger-ui-express';
 
-import { env, logger, DatabasePool } from './config';
+import { env, logger, DatabasePool, openApiSpec } from './config';
 import { errorHandler, requestIdMiddleware } from './middleware';
 import { HealthController, AuthController } from './controllers';
 
@@ -23,6 +24,10 @@ async function bootstrap(): Promise<void> {
     })
   );
   app.use(express.json());
+
+  // API Documentation
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+  app.get('/openapi.json', (_req, res) => res.json(openApiSpec));
 
   useExpressServer(app, {
     controllers: [HealthController, AuthController],
