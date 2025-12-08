@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useAuth } from "@/hooks";
 import { AppShell } from "@/components/layout";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,13 +13,14 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace("/en/login");
+      router.replace(`/${locale}/login`);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, locale]);
 
   if (isLoading) {
     return (

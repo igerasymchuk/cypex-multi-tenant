@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { formatDistanceToNow } from "@/lib/date-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +16,7 @@ interface RecentNotesProps {
 export function RecentNotes({ notes, isLoading }: RecentNotesProps) {
   const t = useTranslations("dashboard");
   const tNotes = useTranslations("notes");
+  const locale = useLocale();
 
   if (isLoading) {
     return (
@@ -47,7 +48,7 @@ export function RecentNotes({ notes, isLoading }: RecentNotesProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{t("recentNotes")}</CardTitle>
         <Button variant="outline" size="sm" asChild>
-          <Link href="/en/notes">{t("viewAllNotes")}</Link>
+          <Link href={`/${locale}/notes`}>{t("viewAllNotes")}</Link>
         </Button>
       </CardHeader>
       <CardContent>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   LayoutDashboard,
   Building2,
@@ -13,21 +13,24 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/en/dashboard", icon: LayoutDashboard, labelKey: "dashboard" },
-  { href: "/en/org", icon: Building2, labelKey: "organization" },
-  { href: "/en/users", icon: Users, labelKey: "users" },
-  { href: "/en/notes", icon: FileText, labelKey: "notes" },
-  { href: "/en/my-notes", icon: UserCircle, labelKey: "myNotes" },
+  { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" },
+  { href: "/org", icon: Building2, labelKey: "organization" },
+  { href: "/users", icon: Users, labelKey: "users" },
+  { href: "/notes", icon: FileText, labelKey: "notes" },
+  { href: "/my-notes", icon: UserCircle, labelKey: "myNotes" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const locale = useLocale();
   const t = useTranslations("nav");
+
+  const getLocalizedHref = (href: string) => `/${locale}${href}`;
 
   return (
     <aside className="hidden w-64 flex-shrink-0 border-r bg-card md:block">
       <div className="flex h-16 items-center border-b px-6">
-        <Link href="/en/dashboard" className="flex items-center gap-2">
+        <Link href={getLocalizedHref("/dashboard")} className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <span className="text-sm font-bold">C</span>
           </div>
@@ -36,11 +39,12 @@ export function Sidebar() {
       </div>
       <nav className="flex flex-col gap-1 p-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const localizedHref = getLocalizedHref(item.href);
+          const isActive = pathname === localizedHref;
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={localizedHref}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive

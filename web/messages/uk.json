@@ -1,0 +1,91 @@
+{
+  "common": {
+    "loading": "Завантаження...",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "create": "Створити",
+    "search": "Пошук...",
+    "noResults": "Результатів не знайдено",
+    "actions": "Дії",
+    "back": "Назад",
+    "submit": "Надіслати",
+    "error": "Помилка",
+    "success": "Успіх"
+  },
+  "auth": {
+    "login": "Увійти",
+    "logout": "Вийти",
+    "email": "Електронна пошта",
+    "organization": "Організація",
+    "selectOrganization": "Оберіть організацію",
+    "loginTitle": "Увійдіть до свого облікового запису",
+    "loginSubtitle": "Введіть свої дані для доступу до панелі керування",
+    "loginHint": "Демо-дані для входу",
+    "loginHintCybertec": "Cybertec: armin@cybertec.at (адмін), bob@cybertec.at (редактор)",
+    "loginHintIvanCorp": "Ivan Corp: ivan@corp.com (адмін), bob@corp.com (редактор)",
+    "loginError": "Невірні дані для входу. Спробуйте ще раз.",
+    "loggingIn": "Вхід..."
+  },
+  "nav": {
+    "dashboard": "Панель керування",
+    "organization": "Організація",
+    "users": "Користувачі",
+    "notes": "Нотатки",
+    "myNotes": "Мої нотатки"
+  },
+  "dashboard": {
+    "title": "Панель керування",
+    "welcome": "З поверненням",
+    "totalNotes": "Всього нотаток",
+    "myNotes": "Мої нотатки",
+    "totalUsers": "Користувачів в організації",
+    "recentNotes": "Останні нотатки",
+    "quickActions": "Швидкі дії",
+    "createNote": "Створити нотатку",
+    "viewAllNotes": "Переглянути всі нотатки"
+  },
+  "org": {
+    "title": "Організація",
+    "name": "Назва",
+    "slug": "Ідентифікатор",
+    "createdAt": "Дата створення",
+    "details": "Деталі організації"
+  },
+  "users": {
+    "title": "Користувачі",
+    "email": "Електронна пошта",
+    "role": "Роль",
+    "createdAt": "Дата створення",
+    "admin": "Адміністратор",
+    "editor": "Редактор"
+  },
+  "notes": {
+    "title": "Нотатки",
+    "noteTitle": "Заголовок",
+    "body": "Зміст",
+    "author": "Автор",
+    "createdAt": "Створено",
+    "updatedAt": "Оновлено",
+    "createNote": "Створити нотатку",
+    "editNote": "Редагувати нотатку",
+    "deleteNote": "Видалити нотатку",
+    "deleteConfirm": "Ви впевнені, що хочете видалити цю нотатку?",
+    "deleteDescription": "Цю дію неможливо скасувати. Нотатку буде остаточно видалено.",
+    "noNotes": "Нотаток не знайдено",
+    "createFirst": "Створіть свою першу нотатку, щоб почати",
+    "noteCreated": "Нотатку успішно створено",
+    "noteUpdated": "Нотатку успішно оновлено",
+    "noteDeleted": "Нотатку успішно видалено",
+    "deletePermissionDenied": "Доступ заборонено",
+    "deleteAdminOnly": "Лише адміністратори можуть видаляти нотатки",
+    "titleRequired": "Заголовок обов'язковий",
+    "titlePlaceholder": "Введіть заголовок нотатки",
+    "bodyPlaceholder": "Введіть зміст нотатки (необов'язково)"
+  },
+  "myNotes": {
+    "title": "Мої нотатки",
+    "description": "Нотатки, автором яких ви є"
+  }
+}

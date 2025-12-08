@@ -1,0 +1,91 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "search": "Suchen...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "actions": "Aktionen",
+    "back": "Zurück",
+    "submit": "Absenden",
+    "error": "Fehler",
+    "success": "Erfolg"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "email": "E-Mail",
+    "organization": "Organisation",
+    "selectOrganization": "Organisation auswählen",
+    "loginTitle": "In Ihr Konto einloggen",
+    "loginSubtitle": "Geben Sie Ihre Anmeldedaten ein, um auf das Dashboard zuzugreifen",
+    "loginHint": "Demo-Zugangsdaten",
+    "loginHintCybertec": "Cybertec: armin@cybertec.at (Admin), bob@cybertec.at (Bearbeiter)",
+    "loginHintIvanCorp": "Ivan Corp: ivan@corp.com (Admin), bob@corp.com (Bearbeiter)",
+    "loginError": "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.",
+    "loggingIn": "Anmeldung läuft..."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "organization": "Organisation",
+    "users": "Benutzer",
+    "notes": "Notizen",
+    "myNotes": "Meine Notizen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück",
+    "totalNotes": "Notizen gesamt",
+    "myNotes": "Meine Notizen",
+    "totalUsers": "Benutzer in der Org",
+    "recentNotes": "Neueste Notizen",
+    "quickActions": "Schnellaktionen",
+    "createNote": "Notiz erstellen",
+    "viewAllNotes": "Alle Notizen anzeigen"
+  },
+  "org": {
+    "title": "Organisation",
+    "name": "Name",
+    "slug": "Kurzname",
+    "createdAt": "Erstellt am",
+    "details": "Organisationsdetails"
+  },
+  "users": {
+    "title": "Benutzer",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "createdAt": "Erstellt am",
+    "admin": "Administrator",
+    "editor": "Bearbeiter"
+  },
+  "notes": {
+    "title": "Notizen",
+    "noteTitle": "Titel",
+    "body": "Inhalt",
+    "author": "Autor",
+    "createdAt": "Erstellt",
+    "updatedAt": "Aktualisiert",
+    "createNote": "Notiz erstellen",
+    "editNote": "Notiz bearbeiten",
+    "deleteNote": "Notiz löschen",
+    "deleteConfirm": "Sind Sie sicher, dass Sie diese Notiz löschen möchten?",
+    "deleteDescription": "Diese Aktion kann nicht rückgängig gemacht werden. Die Notiz wird dauerhaft gelöscht.",
+    "noNotes": "Keine Notizen gefunden",
+    "createFirst": "Erstellen Sie Ihre erste Notiz, um zu beginnen",
+    "noteCreated": "Notiz erfolgreich erstellt",
+    "noteUpdated": "Notiz erfolgreich aktualisiert",
+    "noteDeleted": "Notiz erfolgreich gelöscht",
+    "deletePermissionDenied": "Zugriff verweigert",
+    "deleteAdminOnly": "Nur Administratoren können Notizen löschen",
+    "titleRequired": "Titel ist erforderlich",
+    "titlePlaceholder": "Notiz-Titel eingeben",
+    "bodyPlaceholder": "Notiz-Inhalt eingeben (optional)"
+  },
+  "myNotes": {
+    "title": "Meine Notizen",
+    "description": "Notizen, die Sie verfasst haben"
+  }
+}

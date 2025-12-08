@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   LayoutDashboard,
   Building2,
@@ -14,16 +14,19 @@ import { cn } from "@/lib/utils";
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const navItems = [
-  { href: "/en/dashboard", icon: LayoutDashboard, labelKey: "dashboard" },
-  { href: "/en/org", icon: Building2, labelKey: "organization" },
-  { href: "/en/users", icon: Users, labelKey: "users" },
-  { href: "/en/notes", icon: FileText, labelKey: "notes" },
-  { href: "/en/my-notes", icon: UserCircle, labelKey: "myNotes" },
+  { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" },
+  { href: "/org", icon: Building2, labelKey: "organization" },
+  { href: "/users", icon: Users, labelKey: "users" },
+  { href: "/notes", icon: FileText, labelKey: "notes" },
+  { href: "/my-notes", icon: UserCircle, labelKey: "myNotes" },
 ];
 
 export function MobileSidebar() {
   const pathname = usePathname();
+  const locale = useLocale();
   const t = useTranslations("nav");
+
+  const getLocalizedHref = (href: string) => `/${locale}${href}`;
 
   return (
     <div className="flex h-full flex-col">
@@ -37,11 +40,12 @@ export function MobileSidebar() {
       </SheetHeader>
       <nav className="flex flex-col gap-1 p-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const localizedHref = getLocalizedHref(item.href);
+          const isActive = pathname === localizedHref;
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={localizedHref}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive

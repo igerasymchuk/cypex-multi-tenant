@@ -2,18 +2,20 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useAuth } from "@/hooks";
 import { LoginForm } from "@/components/auth/login-form";
 
 export default function LoginPage() {
   const router = useRouter();
+  const locale = useLocale();
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace("/en/dashboard");
+      router.replace(`/${locale}/dashboard`);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, locale]);
 
   if (isLoading) {
     return (

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,6 +49,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const t = useTranslations("auth");
   const router = useRouter();
+  const locale = useLocale();
   const { login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,7 +66,7 @@ export function LoginForm() {
     try {
       await login(data.email, data.orgSlug);
       toast.success("Login successful!");
-      router.push("/en/dashboard");
+      router.push(`/${locale}/dashboard`);
     } catch {
       toast.error(t("loginError"));
     } finally {

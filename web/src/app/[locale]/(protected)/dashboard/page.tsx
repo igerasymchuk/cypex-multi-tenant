@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Plus } from "lucide-react";
 import { useAuth, useNotes, useNotesForMe, useUsers } from "@/hooks";
 import { StatsCards } from "@/components/dashboard/stats-cards";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
   const { user } = useAuth();
   const { notes, isLoading: notesLoading } = useNotes();
   const { notes: myNotes, isLoading: myNotesLoading } = useNotesForMe();
@@ -49,13 +50,13 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button asChild className="w-full justify-start">
-              <Link href="/en/notes">
+              <Link href={`/${locale}/notes`}>
                 <Plus className="mr-2 h-4 w-4" />
                 {t("createNote")}
               </Link>
             </Button>
             <Button variant="outline" asChild className="w-full justify-start">
-              <Link href="/en/notes">{t("viewAllNotes")}</Link>
+              <Link href={`/${locale}/notes`}>{t("viewAllNotes")}</Link>
             </Button>
           </CardContent>
         </Card>

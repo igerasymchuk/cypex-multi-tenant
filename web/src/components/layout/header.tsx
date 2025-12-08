@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { LogOut, User, Menu } from "lucide-react";
 import { useAuth } from "@/hooks";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileSidebar } from "./mobile-sidebar";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function Header() {
   const t = useTranslations("auth");
   const tUsers = useTranslations("users");
   const router = useRouter();
+  const locale = useLocale();
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
-    router.push("/en/login");
+    router.push(`/${locale}/login`);
   };
 
   const getInitials = (email: string) => {
@@ -51,8 +53,12 @@ export function Header() {
       {/* Page title area - can be used for breadcrumbs */}
       <div className="hidden md:block" />
 
-      {/* User menu */}
-      <DropdownMenu>
+      <div className="flex items-center gap-2">
+        {/* Language switcher */}
+        <LanguageSwitcher />
+
+        {/* User menu */}
+        <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
@@ -89,6 +95,7 @@ export function Header() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     </header>
   );
 }
