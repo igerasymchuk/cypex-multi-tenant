@@ -29,12 +29,12 @@ export interface IFindByEmailAndOrgSlugQuery {
   result: IFindByEmailAndOrgSlugResult;
 }
 
-const findByEmailAndOrgSlugIR: any = {"usedParamSet":{"email":true,"orgSlug":true},"params":[{"name":"email","required":false,"transform":{"type":"scalar"},"locs":[{"a":129,"b":134}]},{"name":"orgSlug","required":false,"transform":{"type":"scalar"},"locs":[{"a":149,"b":156}]}],"statement":"SELECT u.id, u.org_id, u.email, u.role, u.created_at\nFROM public.app_user u\nJOIN public.org o ON o.id = u.org_id\nWHERE u.email = :email AND o.slug = :orgSlug"};
+const findByEmailAndOrgSlugIR: any = {"usedParamSet":{"email":true,"orgSlug":true},"params":[{"name":"email","required":false,"transform":{"type":"scalar"},"locs":[{"a":155,"b":160}]},{"name":"orgSlug","required":false,"transform":{"type":"scalar"},"locs":[{"a":175,"b":182}]}],"statement":"SELECT u.id, u.org_id AS \"orgId\", u.email, u.role, u.created_at AS \"createdAt\"\nFROM public.app_user u\nJOIN public.org o ON o.id = u.org_id\nWHERE u.email = :email AND o.slug = :orgSlug"};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT u.id, u.org_id, u.email, u.role, u.created_at
+ * SELECT u.id, u.org_id AS "orgId", u.email, u.role, u.created_at AS "createdAt"
  * FROM public.app_user u
  * JOIN public.org o ON o.id = u.org_id
  * WHERE u.email = :email AND o.slug = :orgSlug
@@ -68,12 +68,12 @@ export interface IFindByIdQuery {
   result: IFindByIdResult;
 }
 
-const findByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":false,"transform":{"type":"scalar"},"locs":[{"a":75,"b":77}]}],"statement":"SELECT id, org_id, email, role, created_at\nFROM public.app_user\nWHERE id = :id"};
+const findByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":false,"transform":{"type":"scalar"},"locs":[{"a":101,"b":103}]}],"statement":"SELECT id, org_id AS \"orgId\", email, role, created_at AS \"createdAt\"\nFROM public.app_user\nWHERE id = :id"};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT id, org_id, email, role, created_at
+ * SELECT id, org_id AS "orgId", email, role, created_at AS "createdAt"
  * FROM public.app_user
  * WHERE id = :id
  * ```
