@@ -1,0 +1,89 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search...",
+    "noResults": "No results found",
+    "actions": "Actions",
+    "back": "Back",
+    "submit": "Submit",
+    "error": "Error",
+    "success": "Success"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "organization": "Organization",
+    "selectOrganization": "Select organization",
+    "loginTitle": "Sign in to your account",
+    "loginSubtitle": "Enter your credentials to access the dashboard",
+    "loginHint": "Demo credentials",
+    "loginHintCybertec": "Cybertec: armin@cybertec.at (admin), bob@cybertec.at (editor)",
+    "loginHintIvanCorp": "Ivan Corp: ivan@corp.com (admin), bob@corp.com (editor)",
+    "loginError": "Invalid credentials. Please try again.",
+    "loggingIn": "Signing in..."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "organization": "Organization",
+    "users": "Users",
+    "notes": "Notes",
+    "myNotes": "My Notes"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "totalNotes": "Total Notes",
+    "myNotes": "My Notes",
+    "totalUsers": "Users in Org",
+    "recentNotes": "Recent Notes",
+    "quickActions": "Quick Actions",
+    "createNote": "Create Note",
+    "viewAllNotes": "View All Notes"
+  },
+  "org": {
+    "title": "Organization",
+    "name": "Name",
+    "slug": "Slug",
+    "createdAt": "Created At",
+    "details": "Organization Details"
+  },
+  "users": {
+    "title": "Users",
+    "email": "Email",
+    "role": "Role",
+    "createdAt": "Created At",
+    "admin": "Admin",
+    "editor": "Editor"
+  },
+  "notes": {
+    "title": "Notes",
+    "noteTitle": "Title",
+    "body": "Content",
+    "author": "Author",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "createNote": "Create Note",
+    "editNote": "Edit Note",
+    "deleteNote": "Delete Note",
+    "deleteConfirm": "Are you sure you want to delete this note?",
+    "deleteDescription": "This action cannot be undone. This will permanently delete the note.",
+    "noNotes": "No notes found",
+    "createFirst": "Create your first note to get started",
+    "noteCreated": "Note created successfully",
+    "noteUpdated": "Note updated successfully",
+    "noteDeleted": "Note deleted successfully",
+    "titleRequired": "Title is required",
+    "titlePlaceholder": "Enter note title",
+    "bodyPlaceholder": "Enter note content (optional)"
+  },
+  "myNotes": {
+    "title": "My Notes",
+    "description": "Notes you have authored"
+  }
+}

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import express from 'express';
+import cors from 'cors';
 import { useExpressServer, useContainer } from 'routing-controllers';
 import { Container } from 'typedi';
 import pinoHttp from 'pino-http';
@@ -13,6 +14,21 @@ useContainer(Container);
 
 async function bootstrap(): Promise<void> {
   const app = express();
+
+  // CORS configuration - allow frontend origins
+  app.use(
+    cors({
+      origin: [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+      ],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+    })
+  );
 
   app.use(requestIdMiddleware);
   app.use(

@@ -69,6 +69,22 @@ services:
     ports:
       - "${AUTH_API_PORT:-4000}:4000"
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: cypex-web
+    restart: unless-stopped
+    depends_on:
+      - auth-api
+      - postgrest
+    environment:
+      NEXT_PUBLIC_AUTH_API_URL: http://localhost:4000
+      NEXT_PUBLIC_DATA_API_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_NAME: Cypex Multi-Tenant Demo
+    ports:
+      - "${WEB_PORT:-3001}:3000"
+
 volumes:
   postgres_data:
     driver: local
