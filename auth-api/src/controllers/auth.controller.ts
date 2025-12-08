@@ -11,12 +11,13 @@ import { Request } from 'express';
 import { Service } from 'typedi';
 import { AuthService } from '../services';
 import {
-  LoginRequestDto,
-  LoginResponseDto,
-  TokenVerifyResponseDto,
-  UserInfoDto,
+  LoginRequestSchema,
+  type LoginRequestDto,
+  type LoginResponseDto,
+  type TokenVerifyResponseDto,
+  type UserInfoDto,
 } from '../dto';
-import { authMiddleware } from '../middleware';
+import { authMiddleware, zodValidate } from '../middleware';
 
 @Service()
 @JsonController('/auth')
@@ -24,6 +25,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/login')
+  @UseBefore(zodValidate(LoginRequestSchema))
   async login(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
     const result = await this.authService.login(body.email, body.orgSlug);
 

@@ -11,45 +11,6 @@ export interface ApiError {
   requestId?: string;
 }
 
-interface ClassValidatorError {
-  httpCode: number;
-  errors: Array<{
-    property: string;
-    constraints?: Record<string, string>;
-    children?: ClassValidatorError['errors'];
-  }>;
-}
-
-function isClassValidatorError(err: unknown): err is ClassValidatorError {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'httpCode' in err &&
-    'errors' in err &&
-    Array.isArray((err as ClassValidatorError).errors)
-  );
-}
-
-function extractValidationErrors(
-  errors: ClassValidatorError['errors']
-): Record<string, string[]> {
-  const result: Record<string, string[]> = {};
-
-  for (const error of errors) {
-    if (error.constraints) {
-      result[error.property] = Object.values(error.constraints);
-    }
-    if (error.children && error.children.length > 0) {
-      const nestedErrors = extractValidationErrors(error.children);
-      for (const [key, value] of Object.entries(nestedErrors)) {
-        result[`${error.property}.${key}`] = value;
-      }
-    }
-  }
-
-  return result;
-}
-
 export function errorHandler(
   err: Error,
   req: Request,
@@ -68,11 +29,6 @@ export function errorHandler(
     if (err instanceof ValidationError) {
       errors = err.errors;
     }
-  } else if (isClassValidatorError(err)) {
-    status = 400;
-    message = 'Validation failed';
-    code = 'VALIDATION_ERROR';
-    errors = extractValidationErrors(err.errors);
   } else if (err instanceof HttpError) {
     status = err.httpCode;
     message = err.message;

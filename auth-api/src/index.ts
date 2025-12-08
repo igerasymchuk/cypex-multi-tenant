@@ -32,10 +32,7 @@ async function bootstrap(): Promise<void> {
   useExpressServer(app, {
     controllers: [HealthController, AuthController],
     defaultErrorHandler: false,
-    validation: {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    },
+    validation: false, // Using Zod for validation instead of class-validator
   });
 
   app.use(errorHandler);

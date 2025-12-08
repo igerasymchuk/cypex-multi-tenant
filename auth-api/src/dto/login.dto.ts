@@ -1,29 +1,31 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { z } from 'zod';
 
-export class LoginRequestDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+// Zod Schemas
+export const LoginRequestSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  orgSlug: z.string().min(1, 'Organization slug is required'),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  orgSlug!: string;
-}
+export const UserInfoSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  role: z.string(),
+  org_id: z.string().uuid(),
+});
 
-export class UserInfoDto {
-  id!: string;
-  email!: string;
-  role!: string;
-  org_id!: string;
-}
+export const LoginResponseSchema = z.object({
+  token: z.string(),
+  user: UserInfoSchema,
+});
 
-export class LoginResponseDto {
-  token!: string;
-  user!: UserInfoDto;
-}
+export const TokenVerifyResponseSchema = z.object({
+  valid: z.boolean(),
+  user: UserInfoSchema.optional(),
+  expires_at: z.string().optional(),
+});
 
-export class TokenVerifyResponseDto {
-  valid!: boolean;
-  user?: UserInfoDto;
-  expires_at?: string;
-}
+// Inferred TypeScript types
+export type LoginRequestDto = z.infer<typeof LoginRequestSchema>;
+export type UserInfoDto = z.infer<typeof UserInfoSchema>;
+export type LoginResponseDto = z.infer<typeof LoginResponseSchema>;
+export type TokenVerifyResponseDto = z.infer<typeof TokenVerifyResponseSchema>;
