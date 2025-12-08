@@ -32,7 +32,7 @@ export class AuthService {
     // Generate JWT token with claims for PostgREST
     const token = this.jwtService.sign({
       sub: user.id,
-      org_id: user.org_id,
+      org_id: user.orgId,
       role: user.role,
       scopes: ['notes:read', 'notes:write'],
       email: user.email,
@@ -46,7 +46,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        org_id: user.org_id,
+        org_id: user.orgId,
       },
     };
   }
