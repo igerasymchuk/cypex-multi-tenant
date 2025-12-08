@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileSidebar } from "./mobile-sidebar";
 import { LanguageSwitcher } from "./language-switcher";
+import { ThemeSwitcher } from "./theme-switcher";
 
 export function Header() {
   const t = useTranslations("auth");
@@ -54,6 +55,9 @@ export function Header() {
       <div className="hidden md:block" />
 
       <div className="flex items-center gap-2">
+        {/* Theme switcher */}
+        <ThemeSwitcher />
+
         {/* Language switcher */}
         <LanguageSwitcher />
 

@@ -21,13 +21,13 @@ A demonstration of PostgreSQL Row Level Security (RLS) for multi-tenant data iso
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Client/Test   │────▶│   Auth Service  │────▶│   PostgreSQL    │
-│                 │     │  (Port 4000)    │     │   (Port 5432)   │
-└─────────────────┘     └────────┬────────┘     └────────▲────────┘
-                                │ JWT                   │
-                                ▼                       │
-                       ┌─────────────────┐              │
-                       │    PostgREST    │──────────────┘
+│     Web UI      │────▶│   Auth Service  │────▶│   PostgreSQL    │
+│  (Port 3001)    │     │  (Port 4000)    │     │   (Port 5432)   │
+└────────┬────────┘     └────────┬────────┘     └────────▲────────┘
+         │                      │ JWT                   │
+         │                      ▼                       │
+         │             ┌─────────────────┐              │
+         └────────────▶│    PostgREST    │──────────────┘
                        │   (Port 3000)   │
                        └─────────────────┘
 ```
@@ -36,6 +36,7 @@ A demonstration of PostgreSQL Row Level Security (RLS) for multi-tenant data iso
 
 | Service | Port | Description |
 |---------|------|-------------|
+| **Web UI** | 3001 | Next.js 16 frontend with i18n support (en, de, ua) |
 | **PostgreSQL** | 5432 | Database with RLS policies for tenant isolation |
 | **PostgREST** | 3000 | Auto-generated REST API from database schema |
 | **Auth API** | 4000 | Node.js service for authentication & JWT issuance |
@@ -96,6 +97,43 @@ TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
 curl -s http://localhost:3000/note \
   -H "Authorization: Bearer $TOKEN" | jq
 ```
+
+### 4. Access Web UI
+
+Open http://localhost:3001 in your browser. You'll be redirected to the login page.
+
+**Login with test credentials:**
+- Email: `armin@cybertec.at`
+- Organization: `cybertec`
+
+## Web UI Features
+
+The web application provides a complete interface for managing multi-tenant data:
+
+### Pages
+
+| Page | Path | Description |
+|------|------|-------------|
+| **Login** | `/[locale]/login` | Authentication with email + org slug |
+| **Dashboard** | `/[locale]/dashboard` | Overview with stats and recent notes |
+| **Notes** | `/[locale]/notes` | All organization notes (CRUD) |
+| **My Notes** | `/[locale]/my-notes` | Notes authored by current user |
+| **Users** | `/[locale]/users` | Organization users list |
+| **Organization** | `/[locale]/org` | Organization details |
+
+### Features
+
+- **Internationalization**: English (en), German (de), Ukrainian (ua)
+- **Dark/Light Mode**: Theme toggle in header (light, dark, system)
+- **Responsive Design**: Mobile-friendly with collapsible sidebar
+- **Real-time Validation**: Form validation with Zod + React Hook Form
+- **Toast Notifications**: Success/error feedback via Sonner
+- **Role-based UI**: Admin-only delete buttons, role badges
+
+### Screenshots
+
+![Login Page](docs/screenshot-login.png)
+![Dashboard](docs/screenshot-dashboard.png)
 
 ## Test Users
 
@@ -320,34 +358,55 @@ curl -s "http://localhost:3000/note?id=eq.$CYBERTEC_NOTE" \
 
 ## Development
 
+### Local Web UI Development
+
+```bash
+cd web
+
+# Install dependencies
+pnpm install
+
+# Run in development mode (hot reload)
+pnpm dev
+
+# Type checking
+pnpm typecheck
+
+# Linting
+pnpm lint
+
+# Build for production
+pnpm build
+```
+
 ### Local Auth API Development
 
 ```bash
 cd auth-api
 
 # Install dependencies
-npm install
+pnpm install
 
 # Run in development mode (hot reload)
-npm run dev
+pnpm dev
 
 # Type checking
-npm run typecheck
+pnpm typecheck
 
 # Linting
-npm run lint
+pnpm lint
 
 # Run tests
-npm test
+pnpm test
 
 # Run tests once (CI mode)
-npm run test:run
+pnpm test:run
 
 # Run tests with coverage
-npm run test:coverage
+pnpm test:coverage
 
 # Build for production
-npm run build
+pnpm build
 ```
 
 ### Environment Variables
@@ -360,6 +419,9 @@ npm run build
 | `JWT_SECRET` | (fallback) | JWT signing secret (min 32 chars) |
 | `JWT_EXPIRES_IN` | 15m | Token expiration time |
 | `LOG_LEVEL` | info | Logging level (debug, info, warn, error) |
+| `NEXT_PUBLIC_AUTH_API_URL` | http://localhost:4000 | Auth API URL for web |
+| `NEXT_PUBLIC_DATA_API_URL` | http://localhost:3000 | PostgREST URL for web |
+| `WEB_PORT` | 3001 | Web UI port |
 
 ### Database Migrations
 
@@ -697,6 +759,47 @@ cypex-multi-tenant/
 │       ├── 004_seed.sql        # Test data (2 orgs, 5 users, 7 notes)
 │       ├── 005_postgrest_grants.sql  # API permissions
 │       └── 006_observability.sql     # pg_stat_statements exposure
+│
+├── web/                        # Next.js 16 Frontend
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── next.config.ts
+│   ├── middleware.ts           # Auth + i18n routing middleware
+│   └── src/
+│       ├── app/
+│       │   ├── layout.tsx      # Root layout
+│       │   └── [locale]/       # Locale-based routing
+│       │       ├── login/      # Login page
+│       │       ├── (protected)/# Auth-required pages
+│       │       │   ├── dashboard/
+│       │       │   ├── notes/
+│       │       │   ├── my-notes/
+│       │       │   ├── users/
+│       │       │   └── org/
+│       │       └── layout.tsx
+│       ├── components/
+│       │   ├── ui/             # shadcn/ui components
+│       │   ├── layout/         # AppShell, Header, Sidebar
+│       │   ├── auth/           # LoginForm
+│       │   ├── notes/          # NotesTable, NoteForm, DeleteNoteDialog
+│       │   ├── users/          # UsersTable
+│       │   └── dashboard/      # StatsCards, RecentNotes
+│       ├── contexts/
+│       │   └── auth-context.tsx # AuthProvider with JWT management
+│       ├── hooks/
+│       │   ├── use-auth.ts     # Authentication hook
+│       │   ├── use-notes.ts    # Notes CRUD with SWR
+│       │   ├── use-users.ts    # Users data fetching
+│       │   └── use-org.ts      # Organization data
+│       ├── lib/
+│       │   ├── api/            # API clients (auth, data)
+│       │   └── swr-provider.tsx# SWR configuration
+│       ├── i18n/               # next-intl configuration
+│       │   ├── routing.ts
+│       │   ├── request.ts
+│       │   └── navigation.ts
+│       ├── messages/           # Translation files (en, de, ua)
+│       └── types/              # TypeScript types
 │
 └── auth-api/
     ├── Dockerfile

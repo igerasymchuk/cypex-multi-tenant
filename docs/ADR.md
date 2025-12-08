@@ -643,6 +643,417 @@ pnpm test:coverage  # With coverage report
 
 ---
 
+## ADR-017: Web UI Framework - Next.js 16 with App Router
+
+### Status
+Accepted
+
+### Context
+Need a modern React framework for the web UI that supports:
+- Server-side rendering for SEO and performance
+- Built-in routing with layouts
+- TypeScript first-class support
+- Easy deployment options
+
+Options considered:
+1. **Create React App** - Client-only, deprecated
+2. **Vite + React** - Fast, but no SSR without additional setup
+3. **Next.js** - Full-featured, SSR/SSG, App Router
+
+### Decision
+Use **Next.js 16** with App Router for the web frontend.
+
+### Implementation
+```
+web/
+├── src/app/
+│   ├── layout.tsx           # Root layout (providers, global styles)
+│   └── [locale]/            # Locale-based routing
+│       ├── login/           # Public login page
+│       └── (protected)/     # Auth-required route group
+│           ├── layout.tsx   # Protected layout with AppShell
+│           ├── dashboard/
+│           ├── notes/
+│           ├── my-notes/
+│           ├── users/
+│           └── org/
+```
+
+### Rationale
+- App Router provides nested layouts and route groups
+- Built-in middleware for auth/i18n routing
+- Server Components reduce client bundle size
+- Turbopack for fast development builds
+- Production-ready with Docker support
+
+### Consequences
+- Requires understanding of Server vs Client Components
+- Middleware handles authentication redirects
+- Route groups `(protected)` organize auth-required pages
+
+---
+
+## ADR-018: Component Library - shadcn/ui
+
+### Status
+Accepted
+
+### Context
+Need accessible, customizable UI components without vendor lock-in.
+
+Options considered:
+1. **Material UI** - Opinionated design, large bundle
+2. **Chakra UI** - Runtime CSS-in-JS, larger footprint
+3. **shadcn/ui** - Copy-paste components, Tailwind-based
+
+### Decision
+Use **shadcn/ui** with Tailwind CSS v4 for UI components.
+
+### Implementation
+```typescript
+// Components are copied into project, fully customizable
+// web/src/components/ui/button.tsx
+import { cva } from "class-variance-authority"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center...",
+  {
+    variants: {
+      variant: { default: "...", destructive: "...", outline: "..." },
+      size: { default: "...", sm: "...", lg: "..." },
+    },
+  }
+)
+```
+
+### Rationale
+- No runtime CSS-in-JS overhead
+- Full ownership of component code
+- Radix UI primitives for accessibility
+- Tailwind CSS for consistent styling
+- Easy to customize for branding
+
+### Components Used
+| Component | Purpose |
+|-----------|---------|
+| Button, Input, Label | Form controls |
+| Card | Content containers |
+| Dialog, AlertDialog | Modals |
+| DropdownMenu, Select | Selection UI |
+| Table | Data display |
+| Form | React Hook Form integration |
+| Sonner | Toast notifications |
+| Sheet | Mobile sidebar |
+
+### Consequences
+- Components live in `src/components/ui/`
+- Requires Tailwind CSS configuration
+- Manual updates for component improvements
+
+---
+
+## ADR-019: Internationalization - next-intl
+
+### Status
+Accepted
+
+### Context
+Need multi-language support with URL-based locale routing.
+
+Options considered:
+1. **react-i18next** - Mature, but complex setup with Next.js App Router
+2. **next-intl** - Built for Next.js, App Router native
+
+### Decision
+Use **next-intl** for internationalization with locale-prefixed routing.
+
+### Implementation
+```typescript
+// web/src/i18n/routing.ts
+export const routing = defineRouting({
+  locales: ['en', 'de', 'ua'],
+  defaultLocale: 'en',
+});
+
+// web/src/messages/en.json
+{
+  "common": {
+    "appName": "CYPEX Multi-Tenant Demo",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "orgSlug": "Organization"
+  }
+}
+```
+
+### Supported Locales
+| Code | Language |
+|------|----------|
+| `en` | English |
+| `de` | German |
+| `ua` | Ukrainian |
+
+### Rationale
+- Native App Router support
+- Type-safe translation keys
+- Middleware integration for locale detection
+- Static rendering compatible
+
+### Consequences
+- All routes prefixed with locale (`/en/dashboard`)
+- Translation files in `src/messages/`
+- `useTranslations()` hook in components
+
+---
+
+## ADR-020: State Management - SWR for Server State
+
+### Status
+Accepted
+
+### Context
+Need to manage server state (API data) with caching and revalidation.
+
+Options considered:
+1. **Redux** - Complex for server state, manual caching
+2. **React Query** - Excellent, but larger API surface
+3. **SWR** - Simpler API, stale-while-revalidate pattern
+
+### Decision
+Use **SWR** for all API data fetching with custom hooks.
+
+### Implementation
+```typescript
+// web/src/hooks/use-notes.ts
+export function useNotes() {
+  const { token } = useAuth();
+
+  const { data, error, isLoading, mutate } = useSWR<Note[]>(
+    token ? '/note' : null,
+    () => dataApi.getNotes(token!),
+    { revalidateOnFocus: false }
+  );
+
+  const createNote = async (data: NoteInput) => {
+    const newNote = await dataApi.createNote(token!, data);
+    mutate(); // Revalidate cache
+    return newNote;
+  };
+
+  return { notes: data, error, isLoading, createNote, updateNote, deleteNote };
+}
+```
+
+### Rationale
+- Simple `useSWR` hook pattern
+- Automatic caching and deduplication
+- Built-in loading/error states
+- `mutate()` for cache invalidation
+- Smaller bundle than alternatives
+
+### Consequences
+- Custom hooks wrap SWR for each resource
+- Global SWR config in provider
+- Conditional fetching with `null` key when unauthorized
+
+---
+
+## ADR-021: Authentication Flow - Client-Side JWT with Context
+
+### Status
+Accepted
+
+### Context
+Need to manage JWT tokens for API authentication in the browser.
+
+### Decision
+Use React Context for auth state with localStorage persistence.
+
+### Implementation
+```typescript
+// web/src/contexts/auth-context.tsx
+interface AuthContextType {
+  token: string | null;
+  user: User | null;
+  login: (email: string, orgSlug: string) => Promise<void>;
+  logout: () => void;
+  isLoading: boolean;
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('token');
+    if (stored) setToken(stored);
+  }, []);
+
+  const login = async (email: string, orgSlug: string) => {
+    const response = await authApi.login(email, orgSlug);
+    setToken(response.token);
+    localStorage.setItem('token', response.token);
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, user, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+```
+
+### Token Flow
+1. User submits email + orgSlug
+2. Auth API validates and returns JWT
+3. Token stored in localStorage
+4. Token included in all API requests via `Authorization: Bearer`
+5. Middleware redirects to login if no token
+
+### Rationale
+- Simple implementation for demo scope
+- localStorage persists across tabs/refreshes
+- Context provides auth state to all components
+- `useAuth()` hook for easy access
+
+### Security Considerations (Demo)
+- localStorage vulnerable to XSS (acceptable for demo)
+- No refresh token rotation
+- 15-minute expiry limits exposure
+
+### Consequences
+- All authenticated API calls require token from context
+- Logout clears localStorage and redirects
+- Protected routes check token in middleware
+
+---
+
+## ADR-022: Form Handling - React Hook Form + Zod
+
+### Status
+Accepted
+
+### Context
+Need performant form handling with schema validation.
+
+### Decision
+Use **React Hook Form** with **Zod** schemas for validation.
+
+### Implementation
+```typescript
+// web/src/components/auth/login-form.tsx
+const loginSchema = z.object({
+  email: z.string().email('Invalid email'),
+  orgSlug: z.string().min(1, 'Organization required'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+export function LoginForm() {
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', orgSlug: '' },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    await login(data.email, data.orgSlug);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
+  );
+}
+```
+
+### Rationale
+- Uncontrolled inputs for performance
+- Zod schema reuse between frontend and types
+- Type-safe form data
+- Built-in validation UI with shadcn Form
+
+### Consequences
+- Forms use `useForm()` hook
+- Validation runs on blur/submit
+- Error messages from Zod schema
+
+---
+
+## ADR-023: API Client Architecture
+
+### Status
+Accepted
+
+### Context
+Need organized API calls with proper typing.
+
+### Decision
+Separate API clients by service with typed responses.
+
+### Implementation
+```typescript
+// web/src/lib/api/auth-api.ts
+export const authApi = {
+  login: async (email: string, orgSlug: string): Promise<LoginResponse> => {
+    const response = await fetch(`${AUTH_API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, orgSlug }),
+    });
+    if (!response.ok) throw new ApiError(response);
+    return response.json();
+  },
+
+  me: async (token: string): Promise<User> => {
+    const response = await fetch(`${AUTH_API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.json();
+  },
+};
+
+// web/src/lib/api/data-api.ts
+export const dataApi = {
+  getNotes: async (token: string): Promise<Note[]> => { ... },
+  createNote: async (token: string, data: NoteInput): Promise<Note> => { ... },
+  updateNote: async (token: string, id: string, data: NoteInput): Promise<Note> => { ... },
+  deleteNote: async (token: string, id: string): Promise<void> => { ... },
+};
+```
+
+### Rationale
+- Clear separation of Auth API vs Data API (PostgREST)
+- Typed request/response interfaces
+- Centralized error handling
+- Easy to mock in tests
+
+### Consequences
+- All API calls go through these clients
+- Environment variables configure base URLs
+- Hooks use these clients internally
+
+---
+
 ## References
 
 - [PostgreSQL RLS Documentation](https://www.postgresql.org/docs/16/ddl-rowsecurity.html)
@@ -651,3 +1062,8 @@ pnpm test:coverage  # With coverage report
 - [pg_stat_statements Documentation](https://www.postgresql.org/docs/16/pgstatstatements.html)
 - [Vitest Documentation](https://vitest.dev/)
 - [Supertest Documentation](https://github.com/ladjs/supertest)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [shadcn/ui Documentation](https://ui.shadcn.com/)
+- [next-intl Documentation](https://next-intl-docs.vercel.app/)
+- [SWR Documentation](https://swr.vercel.app/)
+- [React Hook Form Documentation](https://react-hook-form.com/)

@@ -87,5 +87,11 @@
   "myNotes": {
     "title": "My Notes",
     "description": "Notes you have authored"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }

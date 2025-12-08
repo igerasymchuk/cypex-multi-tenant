@@ -87,5 +87,11 @@
   "myNotes": {
     "title": "Meine Notizen",
     "description": "Notizen, die Sie verfasst haben"
+  },
+  "theme": {
+    "toggle": "Design wechseln",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
   }
 }
