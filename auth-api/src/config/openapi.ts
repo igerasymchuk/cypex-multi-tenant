@@ -13,7 +13,7 @@ This API provides JWT-based authentication for accessing PostgREST resources.
 Tokens include tenant information (org_id) that PostgREST uses for Row Level Security.
 
 ## Authentication Flow
-1. Call \`POST /auth/login\` with user email
+1. Call \`POST /auth/login\` with user email and organization slug
 2. Receive JWT token with claims: \`sub\`, \`org_id\`, \`role\`, \`scopes\`
 3. Use token in Authorization header: \`Bearer <token>\`
 4. PostgREST validates the token and applies RLS based on \`org_id\`
@@ -75,10 +75,13 @@ Tokens include tenant information (org_id) that PostgREST uses for Row Level Sec
         tags: ['Authentication'],
         summary: 'Login with email',
         description: `
-Authenticates a user by email and returns a JWT token.
+Authenticates a user by email and organization slug, then returns a JWT token.
 
 **Demo Mode**: This endpoint does not verify passwords - any registered email will work.
 In production, this would include password verification.
+
+The \`orgSlug\` parameter identifies which tenant the user is logging into.
+Users can only authenticate against organizations they belong to.
 
 The returned token contains:
 - \`sub\`: User ID (UUID)
@@ -98,15 +101,15 @@ The returned token contains:
               examples: {
                 cybertecAdmin: {
                   summary: 'Cybertec Admin',
-                  value: { email: 'armin@cybertec.at' },
+                  value: { email: 'armin@cybertec.at', orgSlug: 'cybertec' },
                 },
                 cybertecEditor: {
                   summary: 'Cybertec Editor',
-                  value: { email: 'svitlana@cybertec.at' },
+                  value: { email: 'svitlana@cybertec.at', orgSlug: 'cybertec' },
                 },
                 ivanCorpAdmin: {
                   summary: 'Ivan Corp Admin',
-                  value: { email: 'ivan@corp.com' },
+                  value: { email: 'ivan@corp.com', orgSlug: 'ivan-corp' },
                 },
               },
             },
@@ -251,13 +254,19 @@ The returned token contains:
       },
       LoginRequest: {
         type: 'object',
-        required: ['email'],
+        required: ['email', 'orgSlug'],
         properties: {
           email: {
             type: 'string',
             format: 'email',
             description: 'User email address',
             example: 'armin@cybertec.at',
+          },
+          orgSlug: {
+            type: 'string',
+            minLength: 1,
+            description: 'Organization slug for tenant identification',
+            example: 'cybertec',
           },
         },
       },
