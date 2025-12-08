@@ -65,17 +65,17 @@ cd cypex-multi-tenant
 cp .env.example .env
 
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # Check status
-docker-compose ps
+docker compose ps
 ```
 
 ### 2. Verify Services
 
 ```bash
 # PostgreSQL
-docker-compose exec postgres psql -U postgres -d cypex -c "SELECT 1"
+docker compose exec postgres psql -U postgres -d cypex -c "SELECT 1"
 
 # PostgREST (should return OpenAPI schema)
 curl http://localhost:3000/
@@ -367,7 +367,7 @@ Migrations run automatically on container startup. To run manually:
 
 ```bash
 # Connect to database
-docker-compose exec postgres psql -U postgres -d cypex
+docker compose exec postgres psql -U postgres -d cypex
 
 # View all tables
 \dt public.*
@@ -386,7 +386,7 @@ SELECT * FROM pg_policies;
 3. Restart postgres container or run manually:
 
 ```bash
-docker-compose exec postgres psql -U postgres -d cypex \
+docker compose exec postgres psql -U postgres -d cypex \
   -f /docker-entrypoint-initdb.d/migrations/00X_description.sql
 ```
 
@@ -396,19 +396,19 @@ docker-compose exec postgres psql -U postgres -d cypex \
 
 ```bash
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service
-docker-compose logs -f auth-api
-docker-compose logs -f postgrest
-docker-compose logs -f postgres
+docker compose logs -f auth-api
+docker compose logs -f postgrest
+docker compose logs -f postgres
 ```
 
 ### Enable Debug Logging
 
 ```bash
 # Auth API - set LOG_LEVEL=debug in .env
-LOG_LEVEL=debug docker-compose up -d auth-api
+LOG_LEVEL=debug docker compose up -d auth-api
 
 # Or for local development
 LOG_LEVEL=debug npm run dev
@@ -438,7 +438,7 @@ open "https://jwt.io/#debugger-io?token=$TOKEN"
 
 ```bash
 # Connect to database
-docker-compose exec postgres psql -U postgres -d cypex
+docker compose exec postgres psql -U postgres -d cypex
 
 # Simulate JWT claims (as if PostgREST set them)
 SET request.jwt.claims = '{"org_id": "c0000000-0000-0000-0000-000000000001", "sub": "c1000000-0000-0000-0000-000000000001", "role": "admin"}';
@@ -472,7 +472,7 @@ curl -v http://localhost:3000/note \
 psql -h localhost -p 5432 -U postgres -d cypex
 
 # Test connection from within Docker network
-docker-compose exec auth-api nc -zv postgres 5432
+docker compose exec auth-api nc -zv postgres 5432
 ```
 
 ## Troubleshooting
@@ -512,11 +512,11 @@ curl http://localhost:4000/auth/me \
   -H "Authorization: Bearer $TOKEN" | jq
 
 # Check org_id matches expected organization
-docker-compose exec postgres psql -U postgres -d cypex \
+docker compose exec postgres psql -U postgres -d cypex \
   -c "SELECT id, name, slug FROM org"
 
 # Verify RLS policies
-docker-compose exec postgres psql -U postgres -d cypex \
+docker compose exec postgres psql -U postgres -d cypex \
   -c "SELECT * FROM pg_policies WHERE tablename = 'note'"
 ```
 
@@ -524,27 +524,27 @@ docker-compose exec postgres psql -U postgres -d cypex \
 
 ```bash
 # Check PostgreSQL is running
-docker-compose ps postgres
+docker compose ps postgres
 
 # Check logs for errors
-docker-compose logs postgres | tail -50
+docker compose logs postgres | tail -50
 
 # Restart PostgreSQL
-docker-compose restart postgres
+docker compose restart postgres
 
 # Verify credentials
-docker-compose exec postgres psql -U postgres -d cypex -c "SELECT 1"
+docker compose exec postgres psql -U postgres -d cypex -c "SELECT 1"
 ```
 
 ### Auth API Not Starting
 
 ```bash
 # Check logs
-docker-compose logs auth-api | tail -50
+docker compose logs auth-api | tail -50
 
 # Rebuild container
-docker-compose build --no-cache auth-api
-docker-compose up -d auth-api
+docker compose build --no-cache auth-api
+docker compose up -d auth-api
 
 # Check port availability
 lsof -i :4000
@@ -554,11 +554,11 @@ lsof -i :4000
 
 ```bash
 # Check role grants
-docker-compose exec postgres psql -U postgres -d cypex \
+docker compose exec postgres psql -U postgres -d cypex \
   -c "\dp api.*"
 
 # Check function permissions
-docker-compose exec postgres psql -U postgres -d cypex \
+docker compose exec postgres psql -U postgres -d cypex \
   -c "\df+ api.*"
 ```
 
@@ -566,10 +566,10 @@ docker-compose exec postgres psql -U postgres -d cypex \
 
 ```bash
 # Stop and remove containers, volumes
-docker-compose down -v
+docker compose down -v
 
 # Remove all data and restart fresh
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Performance Analysis
@@ -579,7 +579,7 @@ docker-compose up -d
 Already enabled via `docker-compose.yml`. To verify:
 
 ```bash
-docker-compose exec postgres psql -U postgres -d cypex \
+docker compose exec postgres psql -U postgres -d cypex \
   -c "SELECT * FROM pg_stat_statements LIMIT 1"
 ```
 
@@ -607,7 +607,7 @@ curl -s -X POST http://localhost:3000/rpc/slow_queries \
 ### EXPLAIN ANALYZE
 
 ```bash
-docker-compose exec postgres psql -U postgres -d cypex <<'EOF'
+docker compose exec postgres psql -U postgres -d cypex <<'EOF'
 -- Simulate JWT context
 SET request.jwt.claims = '{"org_id": "c0000000-0000-0000-0000-000000000001"}';
 SET ROLE api_user;
