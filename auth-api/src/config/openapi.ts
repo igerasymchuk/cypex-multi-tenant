@@ -14,7 +14,7 @@ Tokens include tenant information (org_id) that PostgREST uses for Row Level Sec
 
 ## Authentication Flow
 1. Call \`POST /auth/login\` with user email
-2. Receive JWT token with claims: \`sub\`, \`org_id\`, \`role\`, \`email\`
+2. Receive JWT token with claims: \`sub\`, \`org_id\`, \`role\`, \`scopes\`
 3. Use token in Authorization header: \`Bearer <token>\`
 4. PostgREST validates the token and applies RLS based on \`org_id\`
 
@@ -295,19 +295,13 @@ The returned token contains:
       },
       UserInfo: {
         type: 'object',
-        required: ['id', 'email', 'role', 'org_id'],
+        required: ['id', 'role', 'org_id'],
         properties: {
           id: {
             type: 'string',
             format: 'uuid',
             description: 'User ID',
             example: 'c1000000-0000-0000-0000-000000000001',
-          },
-          email: {
-            type: 'string',
-            format: 'email',
-            description: 'User email',
-            example: 'armin@cybertec.at',
           },
           role: {
             type: 'string',

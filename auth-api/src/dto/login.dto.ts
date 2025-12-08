@@ -8,7 +8,6 @@ export const LoginRequestSchema = z.object({
 
 export const UserInfoSchema = z.object({
   id: z.string().uuid(),
-  email: z.string().email(),
   role: z.string(),
   org_id: z.string().uuid(),
 });

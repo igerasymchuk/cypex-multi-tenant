@@ -23,7 +23,6 @@ export class JwtService {
       org_id: claims.org_id,
       role: claims.role,
       scopes: claims.scopes,
-      email: claims.email,
       iss: this.issuer,
       aud: this.audience,
     };

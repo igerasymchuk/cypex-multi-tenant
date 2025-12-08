@@ -13,6 +13,7 @@ A demonstration of PostgreSQL Row Level Security (RLS) for multi-tenant data iso
 - [Debugging](#debugging)
 - [Troubleshooting](#troubleshooting)
 - [Performance Analysis](#performance-analysis)
+- [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Security Notes](#security-notes)
 
@@ -144,12 +145,30 @@ curl -X POST http://localhost:4000/auth/login \
 ```bash
 curl http://localhost:4000/auth/verify \
   -H "Authorization: Bearer $TOKEN"
+
+# Response:
+# {
+#   "valid": true,
+#   "user": {
+#     "id": "c1000000-...",
+#     "role": "admin",
+#     "org_id": "c0000000-..."
+#   },
+#   "expires_at": "2025-12-08T12:00:00.000Z"
+# }
 ```
 
 #### Get Current User
 ```bash
 curl http://localhost:4000/auth/me \
   -H "Authorization: Bearer $TOKEN"
+
+# Response (from JWT claims, no email):
+# {
+#   "id": "c1000000-...",
+#   "role": "admin",
+#   "org_id": "c0000000-..."
+# }
 ```
 
 #### OpenAPI Documentation
@@ -318,6 +337,15 @@ npm run typecheck
 # Linting
 npm run lint
 
+# Run tests
+npm test
+
+# Run tests once (CI mode)
+npm run test:run
+
+# Run tests with coverage
+npm run test:coverage
+
 # Build for production
 npm run build
 ```
@@ -394,6 +422,16 @@ echo "YOUR_TOKEN_HERE" | cut -d. -f2 | base64 -d 2>/dev/null | jq
 
 # Or use jwt.io
 open "https://jwt.io/#debugger-io?token=$TOKEN"
+
+# JWT Claims Structure:
+# {
+#   "sub": "uuid",           // User ID
+#   "org_id": "uuid",        // Organization ID (for RLS)
+#   "role": "admin",         // User role (admin/editor)
+#   "scopes": ["notes:read", "notes:write"],
+#   "iss": "cypex-hire",     // Issuer
+#   "aud": "postgrest"       // Audience
+# }
 ```
 
 ### Debug RLS Policies
@@ -582,6 +620,60 @@ RESET ROLE;
 EOF
 ```
 
+## Testing
+
+### Auth API Unit & Integration Tests
+
+The auth-api includes a comprehensive test suite using Vitest and Supertest.
+
+```bash
+cd auth-api
+
+# Run tests in watch mode
+pnpm test
+
+# Run tests once (CI mode)
+pnpm test:run
+
+# Run with coverage report
+pnpm test:coverage
+```
+
+### Test Structure
+
+| File | Type | Coverage |
+|------|------|----------|
+| `auth.service.test.ts` | Unit | Login flow, JWT generation, error cases |
+| `jwt.service.test.ts` | Unit | Token sign/verify/decode, expiration |
+| `auth.controller.test.ts` | Integration | HTTP endpoints, middleware, validation |
+
+### Test Fixtures
+
+Tests use realistic data from the seed database (`db/migrations/004_seed.sql`):
+
+```typescript
+// src/test/fixtures.ts
+ORGS.CYBERTEC    // { id: 'c0000000-...', slug: 'cybertec' }
+ORGS.IVAN_CORP   // { id: 'a0000000-...', slug: 'ivan-corp' }
+
+USERS.ARMIN      // Cybertec admin
+USERS.SVITLANA   // Cybertec editor
+USERS.IVAN       // Ivan Corp admin
+```
+
+### Multi-Tenant Test Scenarios
+
+```typescript
+// Tests verify tenant isolation
+it('should return 401 when user exists but wrong org', async () => {
+  // Armin exists in Cybertec, not Ivan Corp
+  await request(app)
+    .post('/auth/login')
+    .send({ email: USERS.ARMIN.email, orgSlug: ORGS.IVAN_CORP.slug })
+    .expect(401);
+});
+```
+
 ## Project Structure
 
 ```
@@ -610,6 +702,7 @@ cypex-multi-tenant/
     ├── Dockerfile
     ├── package.json
     ├── tsconfig.json
+    ├── vitest.config.ts        # Test configuration
     └── src/
         ├── index.ts            # Express app entry point
         ├── config/
@@ -634,8 +727,12 @@ cypex-multi-tenant/
         │   └── request-id.middleware.ts  # Request correlation
         ├── dto/                # Zod schemas + inferred types
         ├── errors/             # Custom error classes
-        └── types/
-            └── jwt.ts          # JWT payload with NoteScope types
+        ├── types/
+        │   └── jwt.ts          # JWT payload with NoteScope types
+        └── test/
+            ├── setup.ts        # Test setup (env vars, mocks)
+            ├── app.ts          # Test Express app factory
+            └── fixtures.ts     # Test data from seed.sql
 ```
 
 ## Security Notes

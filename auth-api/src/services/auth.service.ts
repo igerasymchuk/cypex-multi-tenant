@@ -35,7 +35,6 @@ export class AuthService {
       org_id: user.orgId,
       role: user.role,
       scopes: ['notes:read', 'notes:write'],
-      email: user.email,
     });
 
     logger.info({ userId: user.id, email: user.email }, 'User logged in successfully');

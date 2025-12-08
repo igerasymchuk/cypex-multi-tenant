@@ -228,6 +228,7 @@ Accepted
 | Validation | Zod | TypeScript-native schema validation, inferred types |
 | SQL | pgTyped | Type-safe SQL with compile-time checking |
 | JWT | jsonwebtoken | Industry standard, well-maintained |
+| Testing | Vitest + Supertest | Fast, TypeScript-native, built-in mocking |
 
 ---
 
@@ -547,9 +548,106 @@ private getScopesForRole(role: string): NoteScope[] {
 
 ---
 
+## ADR-016: Testing Strategy with Vitest
+
+### Status
+Accepted
+
+### Context
+Need a testing framework for the Auth API that supports TypeScript, mocking, and integrates well with the existing stack (Express, TypeDI, routing-controllers).
+
+Options considered:
+1. **Jest** - Mature, widely used, requires ts-jest setup
+2. **Mocha + Chai** - Flexible, requires multiple packages
+3. **Vitest** - Vite-native, ESM-first, built-in TypeScript support
+
+### Decision
+Use **Vitest** with **Supertest** for unit and integration testing.
+
+### Implementation
+
+```typescript
+// vitest.config.ts
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.{test,spec}.ts'],
+  },
+});
+```
+
+### Test Structure
+
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| Unit | Vitest + vi.mock | Service logic, JWT operations |
+| Integration | Supertest | HTTP endpoints, middleware chain |
+| Fixtures | fixtures.ts | Seed data for realistic tests |
+
+### TypeDI Mocking Pattern
+
+routing-controllers requires special handling for dependency injection mocking:
+
+```typescript
+beforeEach(() => {
+  Container.reset();
+
+  // Create mocks
+  mockAuthService = { login: vi.fn() } as unknown as AuthService;
+
+  // Register in container
+  Container.set({ id: AuthService, value: mockAuthService });
+
+  // CRITICAL: Pre-instantiate controller with mocked deps
+  const controller = new AuthController(mockAuthService);
+  Container.set({ id: AuthController, value: controller });
+
+  app = createTestApp();
+});
+```
+
+### Test Fixtures from Seed Data
+
+Tests use the same data as the seed migration for consistency:
+
+```typescript
+// src/test/fixtures.ts - mirrors db/migrations/004_seed.sql
+export const USERS = {
+  ARMIN: { id: 'c1000000-...', email: 'armin@cybertec.at', role: 'admin' },
+  IVAN: { id: 'a1000000-...', email: 'ivan@corp.com', role: 'admin' },
+};
+```
+
+### Rationale
+- **Fast execution**: Vitest is significantly faster than Jest
+- **Native TypeScript**: No transpilation config needed
+- **ESM support**: Aligns with Node.js ecosystem direction
+- **Built-in mocking**: `vi.mock()` and `vi.fn()` work seamlessly
+- **Watch mode**: Instant feedback during development
+
+### Consequences
+- Tests run with `pnpm test` (watch) or `pnpm test:run` (CI)
+- Coverage reports generated with `pnpm test:coverage`
+- Test files co-located with source (`*.test.ts`)
+- Setup file configures environment variables and logger mocks
+
+### Test Commands
+
+```bash
+pnpm test           # Watch mode
+pnpm test:run       # Single run (CI)
+pnpm test:coverage  # With coverage report
+```
+
+---
+
 ## References
 
 - [PostgreSQL RLS Documentation](https://www.postgresql.org/docs/16/ddl-rowsecurity.html)
 - [PostgREST Documentation](https://postgrest.org/en/stable/)
 - [JWT RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)
 - [pg_stat_statements Documentation](https://www.postgresql.org/docs/16/pgstatstatements.html)
+- [Vitest Documentation](https://vitest.dev/)
+- [Supertest Documentation](https://github.com/ladjs/supertest)

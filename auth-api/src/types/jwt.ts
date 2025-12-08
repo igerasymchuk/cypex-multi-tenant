@@ -5,7 +5,6 @@ export interface JwtPayload {
   org_id: string;     // Organization ID
   role: string;       // User role (admin, editor)
   scopes: NoteScope[]; // Permission scopes
-  email: string;      // User email
   iss: string;        // Issuer
   aud: string;        // Audience
   iat: number;        // Issued at
@@ -17,5 +16,4 @@ export interface JwtClaims {
   org_id: string;
   role: string;
   scopes: NoteScope[];
-  email: string;
 }

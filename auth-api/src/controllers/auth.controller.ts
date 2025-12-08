@@ -43,7 +43,6 @@ export class AuthController {
 
     const userInfo: UserInfoDto = {
       id: user.sub,
-      email: user.email,
       role: user.role,
       org_id: user.org_id,
     };
@@ -62,7 +61,6 @@ export class AuthController {
 
     return {
       id: user.sub,
-      email: user.email,
       role: user.role,
       org_id: user.org_id,
     };
