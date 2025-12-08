@@ -224,10 +224,9 @@ Accepted
 | Database | PostgreSQL 16 | Latest stable, native RLS, pg_stat_statements |
 | API | PostgREST 12.2 | Automatic REST from schema, RLS support |
 | Runtime | Node.js 22 LTS | Latest LTS, TypeScript support |
-| Framework | routing-controllers | Decorator-based, TypeScript-first |
-| DI | Typedi | Lightweight, decorator-based |
-| Validation | Zod | TypeScript-native, excellent DX |
-| SQL | pgTyped | Type-safe SQL, compile-time checking |
+| Framework | Express | Minimal, well-documented, flexible |
+| Validation | Zod | TypeScript-native schema validation, inferred types |
+| SQL | pgTyped | Type-safe SQL with compile-time checking |
 | JWT | jsonwebtoken | Industry standard, well-maintained |
 
 ---
@@ -360,6 +359,191 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 - Only `admin` role can view query statistics (may contain user data)
 - Both roles can view aggregate database stats (non-sensitive)
 - Reset function restricted to admin only
+
+---
+
+## ADR-012: Request Validation with Zod
+
+### Status
+Accepted
+
+### Context
+Need robust request validation with TypeScript integration. Options considered:
+1. **class-validator** - Decorator-based, requires class instantiation
+2. **Joi** - Mature, but poor TypeScript integration
+3. **Zod** - TypeScript-first, schema-to-type inference
+
+### Decision
+Use **Zod** for all request/response validation with custom Express middleware.
+
+### Implementation
+```typescript
+// Schema definition with automatic type inference
+export const LoginRequestSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  orgSlug: z.string().min(1, 'Organization slug is required'),
+});
+
+// Type is automatically inferred
+export type LoginRequestDto = z.infer<typeof LoginRequestSchema>;
+
+// Middleware validates and replaces req.body with parsed data
+app.post('/auth/login', zodValidate(LoginRequestSchema), controller.login);
+```
+
+### Rationale
+- Single source of truth for types and validation
+- No decorators or class instantiation required
+- Excellent error messages out of the box
+- Composable schemas for complex validation
+- Runtime validation matches compile-time types
+
+### Consequences
+- Schemas define both validation and types
+- Middleware transforms request body to validated type
+- Validation errors return structured field-level details
+
+---
+
+## ADR-013: Type-Safe SQL with pgTyped
+
+### Status
+Accepted
+
+### Context
+Need type-safe database queries without ORM overhead. Options:
+1. **Raw pg client** - No type safety, SQL injection risk
+2. **Prisma/TypeORM** - Full ORM, abstracts SQL, migration overhead
+3. **pgTyped** - Type generation from SQL files, compile-time checking
+
+### Decision
+Use **pgTyped** for type-safe SQL queries with compile-time type generation.
+
+### Implementation
+```sql
+-- src/queries/user.sql
+/* @name FindByEmailAndOrgSlug */
+SELECT u.id, u.org_id, u.email, u.role, u.created_at
+FROM public.app_user u
+JOIN public.org o ON o.id = u.org_id
+WHERE u.email = :email AND o.slug = :orgSlug;
+```
+
+```typescript
+// Generated: src/queries/user.queries.ts
+export interface IFindByEmailAndOrgSlugParams {
+  email?: string | null | void;
+  orgSlug?: string | null | void;
+}
+
+export interface IFindByEmailAndOrgSlugResult {
+  id: string;
+  orgId: string;
+  email: string;
+  role: user_role;
+  createdAt: Date;
+}
+
+// Usage
+const users = await findByEmailAndOrgSlug.run({ email, orgSlug }, pool);
+```
+
+### Rationale
+- Write raw SQL (full PostgreSQL feature access)
+- Compile-time type checking catches mismatches
+- No runtime overhead (just parameterized queries)
+- Generated types match actual database schema
+- IDE autocomplete for query parameters and results
+
+### Consequences
+- Must run `pgtyped` after SQL file changes
+- SQL files are the source of truth
+- Types regenerated on build
+
+---
+
+## ADR-014: Organization Slug for Authentication
+
+### Status
+Accepted
+
+### Context
+Original login required `org_id` (UUID) which is not user-friendly. Users should authenticate using memorable organization identifiers.
+
+### Decision
+Use **organization slug** instead of UUID for login requests.
+
+### Implementation
+```typescript
+// Login request now uses slug
+{
+  "email": "armin@cybertec.at",
+  "orgSlug": "cybertec"
+}
+
+// SQL joins org table to resolve slug to org_id
+SELECT u.id, u.org_id, u.email, u.role
+FROM public.app_user u
+JOIN public.org o ON o.id = u.org_id
+WHERE u.email = :email AND o.slug = :orgSlug;
+```
+
+### Rationale
+- User-friendly identifiers (e.g., "cybertec" vs "c0000000-0000-0000-0000-000000000001")
+- Org slug is unique constraint in database
+- JWT still contains `org_id` for RLS compatibility
+
+### Consequences
+- Login API changed (breaking change)
+- Org table requires unique `slug` column
+- User lookup includes org join
+
+---
+
+## ADR-015: JWT Permission Scopes
+
+### Status
+Accepted
+
+### Context
+Need fine-grained permissions beyond role-based access (admin/editor).
+
+### Decision
+Add typed **scopes** array to JWT claims for permission checking.
+
+### Implementation
+```typescript
+// Defined scope types
+export type NoteScope = 'notes:read' | 'notes:write';
+
+// JWT claims include scopes
+export interface JwtPayload {
+  sub: string;
+  org_id: string;
+  role: string;
+  scopes: NoteScope[];  // Permission array
+  email: string;
+  // ... standard claims
+}
+
+// Service determines scopes based on role
+private getScopesForRole(role: string): NoteScope[] {
+  return role === 'admin'
+    ? ['notes:read', 'notes:write']
+    : ['notes:read'];
+}
+```
+
+### Rationale
+- Prepared for future scope-based authorization
+- TypeScript union types ensure valid scope values
+- Decouples permissions from role names
+- PostgREST can check scopes via JWT claims
+
+### Consequences
+- Token size increases slightly
+- Scopes derived from role at token generation
+- Future: RLS policies can check specific scopes
 
 ---
 

@@ -86,10 +86,10 @@ curl http://localhost:4000/health
 ### 3. Quick Test
 
 ```bash
-# Login as admin
+# Login as admin (requires email + orgSlug)
 TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "armin@cybertec.at"}' | jq -r .token)
+  -d '{"email": "armin@cybertec.at", "orgSlug": "cybertec"}' | jq -r .token)
 
 # List notes (filtered by org automatically via RLS)
 curl -s http://localhost:3000/note \
@@ -98,7 +98,7 @@ curl -s http://localhost:3000/note \
 
 ## Test Users
 
-### Cybertec Organization
+### Cybertec Organization (`orgSlug: "cybertec"`)
 
 | Email | Role | Can Delete Notes |
 |-------|------|------------------|
@@ -106,7 +106,7 @@ curl -s http://localhost:3000/note \
 | `svitlana@cybertec.at` | editor | No |
 | `bob@cybertec.at` | editor | No |
 
-### Ivan Corp Organization
+### Ivan Corp Organization (`orgSlug: "ivancorp"`)
 
 | Email | Role | Can Delete Notes |
 |-------|------|------------------|
@@ -126,12 +126,17 @@ curl http://localhost:4000/health
 ```bash
 curl -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "armin@cybertec.at"}'
+  -d '{"email": "armin@cybertec.at", "orgSlug": "cybertec"}'
 
 # Response:
 # {
 #   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-#   "expiresIn": "15m"
+#   "user": {
+#     "id": "c1000000-...",
+#     "email": "armin@cybertec.at",
+#     "role": "admin",
+#     "org_id": "c0000000-..."
+#   }
 # }
 ```
 
@@ -236,12 +241,12 @@ curl -X POST http://localhost:3000/rpc/reset_query_stats \
 # Login as Cybertec user
 CYBERTEC_TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "armin@cybertec.at"}' | jq -r .token)
+  -d '{"email": "armin@cybertec.at", "orgSlug": "cybertec"}' | jq -r .token)
 
 # Login as Ivan Corp user
 IVANCORP_TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "ivan@corp.com"}' | jq -r .token)
+  -d '{"email": "ivan@corp.com", "orgSlug": "ivancorp"}' | jq -r .token)
 
 # Cybertec user sees only Cybertec notes (should show 4 notes)
 curl -s http://localhost:3000/note \
@@ -258,7 +263,7 @@ curl -s http://localhost:3000/note \
 # Login as editor (non-admin)
 EDITOR_TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "svitlana@cybertec.at"}' | jq -r .token)
+  -d '{"email": "svitlana@cybertec.at", "orgSlug": "cybertec"}' | jq -r .token)
 
 # Create a note first
 NOTE_ID=$(curl -s -X POST http://localhost:3000/note \
@@ -274,7 +279,7 @@ curl -X DELETE "http://localhost:3000/note?id=eq.$NOTE_ID" \
 # Login as admin
 ADMIN_TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "armin@cybertec.at"}' | jq -r .token)
+  -d '{"email": "armin@cybertec.at", "orgSlug": "cybertec"}' | jq -r .token)
 
 # Delete as admin (should succeed)
 curl -X DELETE "http://localhost:3000/note?id=eq.$NOTE_ID" \
@@ -449,7 +454,7 @@ grep JWT_SECRET .env
 # Get a fresh token
 TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "armin@cybertec.at"}' | jq -r .token)
+  -d '{"email": "armin@cybertec.at", "orgSlug": "cybertec"}' | jq -r .token)
 
 # Verify token format
 echo "Authorization: Bearer $TOKEN"
@@ -546,7 +551,7 @@ docker-compose exec postgres psql -U postgres -d cypex \
 # Login as admin
 ADMIN_TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "armin@cybertec.at"}' | jq -r .token)
+  -d '{"email": "armin@cybertec.at", "orgSlug": "cybertec"}' | jq -r .token)
 
 # Get top queries by total time
 curl -s -X POST http://localhost:3000/rpc/query_stats \
@@ -617,15 +622,20 @@ cypex-multi-tenant/
         │   └── health.controller.ts  # /health endpoint
         ├── services/
         │   ├── auth.service.ts       # Authentication logic
-        │   ├── user.service.ts       # User lookup
+        │   ├── user.service.ts       # User lookup (uses pgTyped)
         │   └── jwt.service.ts        # Token generation/verification
+        ├── queries/
+        │   ├── user.sql              # SQL queries (pgTyped source)
+        │   └── user.queries.ts       # Generated types (pgTyped output)
         ├── middleware/
         │   ├── auth.middleware.ts    # JWT verification
         │   ├── error-handler.ts      # Global error handling
+        │   ├── zod-validation.middleware.ts  # Zod schema validation
         │   └── request-id.middleware.ts  # Request correlation
-        ├── dto/                # Request/Response types
+        ├── dto/                # Zod schemas + inferred types
         ├── errors/             # Custom error classes
-        └── types/              # TypeScript declarations
+        └── types/
+            └── jwt.ts          # JWT payload with NoteScope types
 ```
 
 ## Security Notes
