@@ -78,6 +78,8 @@
     "noteCreated": "Note created successfully",
     "noteUpdated": "Note updated successfully",
     "noteDeleted": "Note deleted successfully",
+    "deletePermissionDenied": "Permission denied",
+    "deleteAdminOnly": "Only administrators can delete notes",
     "titleRequired": "Title is required",
     "titlePlaceholder": "Enter note title",
     "bodyPlaceholder": "Enter note content (optional)"

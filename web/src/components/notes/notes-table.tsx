@@ -32,7 +32,7 @@ interface NotesTableProps {
   notes: Note[];
   users: AppUser[];
   isLoading: boolean;
-  onMutate: () => void;
+  onMutate: () => Promise<Note[] | undefined>;
   showCreateButton?: boolean;
 }
 
@@ -45,7 +45,7 @@ export function NotesTable({
 }: NotesTableProps) {
   const t = useTranslations("notes");
   const tCommon = useTranslations("common");
-  const { user } = useAuth();
+  useAuth(); // Ensure user is authenticated
   const { createNote, isCreating } = useCreateNote();
   const { updateNote, isUpdating } = useUpdateNote();
   const { deleteNote, isDeleting } = useDeleteNote();
@@ -54,8 +54,6 @@ export function NotesTable({
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
-
-  const isAdmin = user?.role === "admin";
 
   const filteredNotes = notes.filter((note) =>
     note.title.toLowerCase().includes(search.toLowerCase())
@@ -91,13 +89,35 @@ export function NotesTable({
 
   const handleDelete = async () => {
     if (!deletingNote) return;
+    const noteId = deletingNote.id;
     try {
-      await deleteNote(deletingNote.id);
-      toast.success(t("noteDeleted"));
+      await deleteNote(noteId);
+      // Refresh the list to verify deletion
+      const freshNotes = await onMutate();
+      // Check if the note was actually deleted (RLS may silently block)
+      const noteStillExists = freshNotes?.some((n) => n.id === noteId);
+      if (noteStillExists) {
+        // RLS blocked the deletion silently
+        toast.error(t("deletePermissionDenied"), {
+          description: t("deleteAdminOnly"),
+        });
+      } else {
+        toast.success(t("noteDeleted"));
+      }
       setDeletingNote(null);
-      onMutate();
-    } catch {
-      toast.error("Failed to delete note");
+    } catch (error) {
+      // API returned an error
+      const apiError = error as { message?: string; code?: string };
+      const isPermissionError =
+        apiError.code === "42501" || apiError.message?.includes("permission");
+      if (isPermissionError) {
+        toast.error(t("deletePermissionDenied"), {
+          description: t("deleteAdminOnly"),
+        });
+      } else {
+        toast.error("Failed to delete note");
+      }
+      setDeletingNote(null);
     }
   };
 
@@ -224,17 +244,15 @@ export function NotesTable({
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">{tCommon("edit")}</span>
                         </Button>
-                        {isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeletingNote(note)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">{tCommon("delete")}</span>
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingNote(note)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">{tCommon("delete")}</span>
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

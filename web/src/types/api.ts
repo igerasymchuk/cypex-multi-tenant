@@ -1,4 +1,7 @@
 // Auth API types
+export type Role = "admin" | "editor";
+export type Scope = "notes:read" | "notes:write";
+
 export interface LoginRequest {
   email: string;
   orgSlug: string;
@@ -12,13 +15,13 @@ export interface LoginResponse {
 export interface UserInfo {
   id: string;
   email: string;
-  role: "admin" | "editor";
+  role: Role;
   org_id: string;
 }
 
 export interface AuthMeResponse {
   id: string;
-  role: "admin" | "editor";
+  role: Role;
   org_id: string;
 }
 
@@ -40,8 +43,8 @@ export interface ApiError {
 export interface DecodedJwt {
   sub: string;
   org_id: string;
-  role: "admin" | "editor";
-  scopes: ("notes:read" | "notes:write")[];
+  role: Role;
+  scopes: Scope[];
   iss: string;
   aud: string;
   iat: number;

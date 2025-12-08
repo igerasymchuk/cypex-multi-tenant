@@ -1,4 +1,5 @@
 // Domain entities matching PostgREST API
+import type { Role } from "./api";
 
 export interface Org {
   id: string;
@@ -11,7 +12,7 @@ export interface AppUser {
   id: string;
   org_id: string;
   email: string;
-  role: "admin" | "editor";
+  role: Role;
   created_at: string;
 }
 
