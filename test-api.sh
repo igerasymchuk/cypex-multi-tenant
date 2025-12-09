@@ -6,9 +6,9 @@ set -e
 echo "=== 1. Login to get JWT token ==="
 LOGIN_RESPONSE=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"armin@cybertec.at"}')
+  -d '{"email":"armin@cybertec.at","orgSlug":"cybertec"}')
 TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token')
-echo "User: $(echo "$LOGIN_RESPONSE" | jq -r '.user.email') ($(echo "$LOGIN_RESPONSE" | jq -r '.user.role'))"
+echo "User: $(echo "$LOGIN_RESPONSE" | jq -r '.user.id') ($(echo "$LOGIN_RESPONSE" | jq -r '.user.role'))"
 echo "Token: ${TOKEN:0:50}..."
 
 echo ""
@@ -57,7 +57,7 @@ echo ""
 echo "=== Test with different tenant (Ivan Corp) ==="
 IVAN_TOKEN=$(curl -s -X POST http://localhost:4000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"ivan@corp.com"}' | jq -r '.token')
+  -d '{"email":"ivan@corp.com","orgSlug":"ivan-corp"}' | jq -r '.token')
 echo "Ivan Corp notes:"
 curl -s http://localhost:3000/note \
   -H "Authorization: Bearer $IVAN_TOKEN" | jq '[.[] | .title]'
